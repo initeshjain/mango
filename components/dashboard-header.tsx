@@ -28,7 +28,7 @@ export function DashboardHeader() {
         <div className="mr-4 flex">
           <Link href="/" className="mr-2 flex items-center space-x-2">
             <Database className="h-6 w-6 text-primary" />
-            <span className="font-bold">MongoDB On The Go</span>
+            <span className="font-bold">Mango</span>
           </Link>
           <nav className="flex items-center space-x-4 lg:space-x-6 mx-6 hidden md:flex">
             <Link

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { connectionManager } from "@/lib/mongodb-connection-manager";
 import { buildConnectionUri } from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 export async function GET(
     req: Request,
@@ -45,6 +46,16 @@ export async function GET(
         let parsedQuery = {};
         try {
             parsedQuery = JSON.parse(query);
+
+            // Convert `_id` to ObjectId if present
+            if (parsedQuery?._id) {
+                try {
+                    parsedQuery._id = new ObjectId(parsedQuery._id);
+                } catch (error) {
+                    return new NextResponse("Invalid ObjectId format", { status: 400 });
+                }
+            }
+
         } catch (error) {
             return new NextResponse("Invalid query parameter", { status: 400 });
         }
