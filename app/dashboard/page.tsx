@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { Metadata } from "next";
-import { DashboardHeader } from "@/components/dashboard-header";
 import { ConnectionsList } from "@/components/connections-list";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { MongoDBConnection } from "@/lib/mongodb-types";
 import { prisma } from "@/lib/prisma";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 
 export const metadata: Metadata = {
   title: "Dashboard - MongoDB Explorer",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
 
   if (!session) {
     redirect("/auth/signin");
@@ -33,7 +33,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="dashboard-container">
-      {/* <DashboardHeader /> */}
       <main className="dashboard-main">
         <div className="dashboard-header">
           <h1 className="text-3xl font-bold tracking-tight">Connections</h1>
