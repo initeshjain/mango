@@ -28,31 +28,46 @@ export function DashboardHeader() {
         <div className="mr-4 flex">
           <Link href="/" className="mr-2 flex items-center space-x-2">
             <Database className="h-6 w-6 text-primary" />
-            <span className="font-bold">Mango</span>
+            <span className="font-bold">MongoDB Explorer</span>
           </Link>
           <nav className="flex items-center space-x-4 lg:space-x-6 mx-6 hidden md:flex">
             <Link
-              href="/dashboard"
+              href="/pricing"
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                pathname === "/dashboard"
+                pathname === "/pricing"
                   ? "text-foreground"
                   : "text-muted-foreground"
               )}
             >
-              Dashboard
+              Pricing
             </Link>
-            <Link
-              href="/dashboard/connections"
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                pathname?.startsWith("/dashboard/connections")
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              )}
-            >
-              Connections
-            </Link>
+            {session && (
+              <>
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    pathname === "/dashboard"
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/dashboard/connections"
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    pathname?.startsWith("/dashboard/connections")
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  Connections
+                </Link>
+              </>
+            )}
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
@@ -83,6 +98,9 @@ export function DashboardHeader() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/connections">Connections</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/subscription">Subscription</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>

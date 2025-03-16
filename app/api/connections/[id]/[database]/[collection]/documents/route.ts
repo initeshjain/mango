@@ -34,8 +34,6 @@ export async function GET(
         const db = client.db(params.database);
         const collection = db.collection(params.collection);
 
-        console.log("Collection: ", collection);
-
         // Get URL parameters
         const url = new URL(req.url);
         const limit = parseInt(url.searchParams.get("limit") || "50", 10);
@@ -46,30 +44,17 @@ export async function GET(
         let parsedQuery = {};
         try {
             parsedQuery = JSON.parse(query);
-
-            // Convert `_id` to ObjectId if present
-            if (parsedQuery?._id) {
-                try {
-                    parsedQuery._id = new ObjectId(parsedQuery._id);
-                } catch (error) {
-                    return new NextResponse("Invalid ObjectId format", { status: 400 });
-                }
-            }
-
         } catch (error) {
             return new NextResponse("Invalid query parameter", { status: 400 });
         }
 
-        console.log("parsedQuery", parsedQuery);
         const documents = await collection
             .find(parsedQuery)
             .skip(skip)
             .limit(limit)
             .toArray();
 
-        console.log(documents);
-
-        const total = documents.length;
+        const total = await collection.countDocuments(parsedQuery);
 
         return NextResponse.json({
             documents,
@@ -79,6 +64,103 @@ export async function GET(
         });
     } catch (error) {
         console.error("[DOCUMENTS_GET]", error);
+        return new NextResponse("Internal Error", { status: 500 });
+    }
+}
+
+export async function PATCH(
+    req: Request,
+    { params }: { params: { id: string; database: string; collection: string } }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        const connection = await prisma.connection.findUnique({
+            where: {
+                id: params.id,
+                userId: session.user.id,
+            },
+        });
+
+        if (!connection) {
+            return new NextResponse("Connection not found", { status: 404 });
+        }
+
+        const { documentId, update } = await req.json();
+
+        if (!documentId || !update) {
+            return new NextResponse("Missing required fields", { status: 400 });
+        }
+
+        const uri = buildConnectionUri(connection);
+        const client = await connectionManager.getConnection(connection.id, uri);
+
+        const db = client.db(params.database);
+        const collection = db.collection(params.collection);
+
+        const result = await collection.updateOne(
+            { _id: new ObjectId(documentId) },
+            { $set: update }
+        );
+
+        if (result.matchedCount === 0) {
+            return new NextResponse("Document not found", { status: 404 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("[DOCUMENTS_PATCH]", error);
+        return new NextResponse("Internal Error", { status: 500 });
+    }
+}
+
+export async function DELETE(
+    req: Request,
+    { params }: { params: { id: string; database: string; collection: string } }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return new NextResponse("Unauthorized", { status: 401 });
+        }
+
+        const connection = await prisma.connection.findUnique({
+            where: {
+                id: params.id,
+                userId: session.user.id,
+            },
+        });
+
+        if (!connection) {
+            return new NextResponse("Connection not found", { status: 404 });
+        }
+
+        const { documentId } = await req.json();
+
+        if (!documentId) {
+            return new NextResponse("Missing document ID", { status: 400 });
+        }
+
+        const uri = buildConnectionUri(connection);
+        const client = await connectionManager.getConnection(connection.id, uri);
+
+        const db = client.db(params.database);
+        const collection = db.collection(params.collection);
+
+        const result = await collection.deleteOne({ _id: new ObjectId(documentId) });
+
+        if (result.deletedCount === 0) {
+            return new NextResponse("Document not found", { status: 404 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("[DOCUMENTS_DELETE]", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }

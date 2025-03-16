@@ -8,13 +8,15 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { DocumentViewer } from "@/components/document-viewer";
 import Link from "next/link";
-import { ArrowLeft, Play, Code2 } from "lucide-react";
-import { MongoDBDocument } from "@/lib/mongodb-types";
+import { ArrowLeft, Play, Code2, History, Trash2 } from "lucide-react";
+import { MongoDBDocument, QueryHistoryItem } from "@/lib/mongodb-types";
 import { useToast } from "@/hooks/use-toast";
 import { Editor } from "@monaco-editor/react";
 import JSON5 from 'json5';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { formatDistanceToNow } from "date-fns";
 
 const defaultQuery = `{
   // Write your MongoDB query here
@@ -34,6 +36,8 @@ export default function CollectionPage({
   const [queryLoading, setQueryLoading] = useState(false);
   const [query, setQuery] = useState(defaultQuery);
   const [queryError, setQueryError] = useState<string | null>(null);
+  const [queryHistory, setQueryHistory] = useState<QueryHistoryItem[]>([]);
+  const [selectedTab, setSelectedTab] = useState("documents");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -74,6 +78,21 @@ export default function CollectionPage({
       const documentsData = await documentsRes.json();
       setDocuments(documentsData.documents);
 
+      // Save query to history
+      await fetch("/api/query-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query,
+          collection: params.collection,
+          database: params.database,
+          connectionId: params.id,
+        }),
+      });
+
+      // Refresh query history
+      fetchQueryHistory();
+
       toast({
         title: "Query executed successfully",
         description: `Found ${documentsData.total} documents`,
@@ -86,6 +105,34 @@ export default function CollectionPage({
       });
     } finally {
       setQueryLoading(false);
+    }
+  };
+
+  const fetchQueryHistory = async () => {
+    try {
+      const res = await fetch("/api/query-history");
+      if (!res.ok) throw new Error("Failed to fetch query history");
+      const history = await res.json();
+      setQueryHistory(history);
+    } catch (error) {
+      console.error("Failed to fetch query history:", error);
+    }
+  };
+
+  const clearQueryHistory = async () => {
+    try {
+      await fetch("/api/query-history", { method: "DELETE" });
+      setQueryHistory([]);
+      toast({
+        title: "Query history cleared",
+        description: "Successfully cleared all query history",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear query history",
+        variant: "destructive",
+      });
     }
   };
 
@@ -105,6 +152,9 @@ export default function CollectionPage({
         if (!documentsRes.ok) throw new Error("Failed to fetch documents");
         const documentsData = await documentsRes.json();
         setDocuments(documentsData.documents);
+
+        // Fetch query history
+        await fetchQueryHistory();
       } catch (error) {
         toast({
           title: "Error",
@@ -151,10 +201,11 @@ export default function CollectionPage({
           </div>
         </div>
 
-        <Tabs defaultValue="documents" className="mt-6">
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-6">
           <TabsList>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="query">Query</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
           <TabsContent value="documents" className="mt-6">
@@ -232,6 +283,57 @@ export default function CollectionPage({
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <History className="h-5 w-5 mr-2" />
+                    Query History
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={clearQueryHistory}
+                    className="ml-auto"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear History
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px] pr-4">
+                  {queryHistory.length > 0 ? (
+                    <div className="space-y-4">
+                      {queryHistory.map((item) => (
+                        <Card key={item.id} className="cursor-pointer hover:bg-muted/50">
+                          <CardHeader className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="font-mono text-sm truncate flex-1 mr-4">
+                                {item.query}
+                              </div>
+                              <div className="text-xs text-muted-foreground whitespace-nowrap">
+                                {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-2">
+                              {item.database} / {item.collection}
+                            </div>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-8">
+                      No query history available
+                    </div>
+                  )}
+                </ScrollArea>
               </CardContent>
             </Card>
           </TabsContent>

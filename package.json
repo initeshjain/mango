@@ -1,5 +1,5 @@
 {
-  "name": "mango",
+  "name": "mongodb-explorer",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -49,12 +49,13 @@
     "embla-carousel-react": "^8.0.0-rc14",
     "json5": "^2.2.3",
     "lucide-react": "^0.279.0",
-    "mongodb": "^6.1.0",
     "monaco-editor": "^0.47.0",
+    "mongodb": "^6.1.0",
     "next": "13.5.4",
     "next-auth": "^4.23.2",
     "next-themes": "^0.2.1",
     "postcss": "^8.4.31",
+    "razorpay": "^2.9.6",
     "react": "18.2.0",
     "react-day-picker": "^8.8.2",
     "react-dom": "18.2.0",
