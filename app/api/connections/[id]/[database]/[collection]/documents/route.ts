@@ -29,6 +29,8 @@ export async function GET(
         }
 
         const uri = buildConnectionUri(connection);
+        // const uri = buildConnectionUri({ ...connection, uri: connection.uri ?? undefined });
+
         const client = await connectionManager.getConnection(connection.id, uri);
 
         const db = client.db(params.database);

@@ -40,7 +40,7 @@ export async function getCollections(uri: string, dbName: string) {
         // Add additional collection stats
         const collectionsWithStats = await Promise.all(
             collections.map(async (collection) => {
-                const stats = await db.collection(collection.name).stats();
+                const stats = await db.command({ collStats: collection.name });
                 return {
                     ...collection,
                     count: stats.count,
@@ -85,12 +85,12 @@ export async function closeAllConnections() {
 
 // Helper function to build connection URI
 export function buildConnectionUri(connection: {
-    uri?: string;
-    hostname?: string;
-    port?: number;
-    username?: string;
-    password?: string;
-    database?: string;
+    uri?: string | null;
+    hostname?: string | null;
+    port?: number | null;
+    username?: string | null;
+    password?: string | null;
+    database?: string | null;
 }): string {
     if (connection.uri) {
         return connection.uri;

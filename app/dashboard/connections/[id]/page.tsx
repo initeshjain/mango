@@ -100,7 +100,7 @@ export default function ConnectionPage({
                     <CardContent>
                       <div className="text-sm">
                         <p className="text-muted-foreground">Size on Disk</p>
-                        <p className="font-medium">{(database.sizeOnDisk / (1024 * 1024)).toFixed(2)} MB</p>
+                        <p className="font-medium">{(database.sizeOnDisk ?? 0 / (1024 * 1024)).toFixed(2)} MB</p>
                       </div>
                     </CardContent>
                     <CardFooter>

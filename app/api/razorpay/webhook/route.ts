@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 async function handleSubscriptionCharged(subscription: any) {
     await prisma.subscription.update({
         where: {
-            razorpaySubscriptionId: subscription.id,
+            id: subscription.id,
         },
         data: {
             status: "ACTIVE",
@@ -57,7 +57,7 @@ async function handleSubscriptionCharged(subscription: any) {
 async function handleSubscriptionCancelled(subscription: any) {
     await prisma.subscription.update({
         where: {
-            razorpaySubscriptionId: subscription.id,
+            id: subscription.id,
         },
         data: {
             status: "CANCELLED",
@@ -69,7 +69,7 @@ async function handleSubscriptionCancelled(subscription: any) {
 async function handleSubscriptionExpired(subscription: any) {
     await prisma.subscription.update({
         where: {
-            razorpaySubscriptionId: subscription.id,
+            id: subscription.id,
         },
         data: {
             status: "EXPIRED",

@@ -33,7 +33,7 @@ export const authOptions: AuthOptions = {
         async session({ session, token }) {
             // Attach user ID from the token to the session
             if (session?.user) {
-                session.user.id = token.id;
+                session.user.id = token.id as unknown as string;
             }
             return session;
         },

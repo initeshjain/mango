@@ -20,11 +20,11 @@ export async function POST(req: Request) {
 
         const { plan } = await req.json();
 
-        if (!SUBSCRIPTION_PLANS[plan]) {
+        if (!SUBSCRIPTION_PLANS[plan as keyof typeof SUBSCRIPTION_PLANS]) {
             return new NextResponse("Invalid plan", { status: 400 });
         }
 
-        const price = SUBSCRIPTION_PLANS[plan].price;
+        const price = SUBSCRIPTION_PLANS[plan as keyof typeof SUBSCRIPTION_PLANS].price;
 
         if (price === 0) {
             return new NextResponse("Cannot subscribe to free plan", { status: 400 });
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
             plan_id: process.env[`RAZORPAY_${plan}_PLAN_ID`]!,
             customer_notify: 1,
             quantity: 1,
-            customer_id: customerId,
+            total_count: 1,
         });
 
         // Save subscription details
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
                 razorpayCustomerId: customerId,
                 status: "ACTIVE",
                 startDate: new Date(),
-                endDate: new Date(subscription.current_end * 1000),
+                endDate: new Date(subscription.current_end ? subscription.current_end * 1000 : new Date().getTime()),
             },
             create: {
                 userId: session.user.id,
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
                 razorpayCustomerId: customerId,
                 status: "ACTIVE",
                 startDate: new Date(),
-                endDate: new Date(subscription.current_end * 1000),
+                endDate: new Date(subscription.current_end ? subscription.current_end * 1000 : new Date().getTime()),
             },
         });
 

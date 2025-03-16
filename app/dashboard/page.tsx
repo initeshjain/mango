@@ -46,7 +46,7 @@ export default async function DashboardPage() {
         </div>
         <div className="mt-8">
           {connections.length > 0 ? (
-            <ConnectionsList connections={connections} />
+            <ConnectionsList connections={connections as MongoDBConnection[]} />
           ) : (
             <EmptyState
               title="No connections"
