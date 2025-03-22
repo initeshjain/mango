@@ -34,7 +34,6 @@ export default function ConnectionPage({
       try {
         // Fetch connection details
         const connectionRes = await fetch(`/api/connections/${params.id}`);
-        console.log(connectionRes)
         if (!connectionRes.ok) throw new Error("Failed to fetch connection");
         const connectionData = await connectionRes.json();
         setConnection(connectionData);
@@ -100,7 +99,7 @@ export default function ConnectionPage({
                     <CardContent>
                       <div className="text-sm">
                         <p className="text-muted-foreground">Size on Disk</p>
-                        <p className="font-medium">{(database.sizeOnDisk ?? 0 / (1024 * 1024)).toFixed(2)} MB</p>
+                        <p className="font-medium">{((database.sizeOnDisk ?? 0) / (1024 * 1024)).toFixed(2)} MB</p>
                       </div>
                     </CardContent>
                     <CardFooter>
